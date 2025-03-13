@@ -6,7 +6,22 @@
 </script>
 
 <script lang="ts">
+    import { StockService } from "../services/stocks.service";
+    import { onMount } from "svelte";
+    import type {Stock} from "../entities/stock";
     let props = $props();
+    let stocks = $state([] as Stock[]);
+    let rises = $state([] as Stock[]);
+    let falls = $state([] as Stock[]);
+
+    onMount(async () => {
+        let stockService = new StockService();
+        stocks = await stockService.getAll()
+        rises = stocks.filter(s => s.variation >= 0);
+        falls = stocks.filter(s => s.variation < 0);
+        rises.sort((a, b) => b.variation - a.variation);
+        falls.sort((a, b) => a.variation - b.variation);
+    });
 </script>
 
 <style>
@@ -35,3 +50,22 @@
 
 derived : {der()}
 </ul>
+
+<div class="columns-2 border-2 border-indigo-500" style="">
+    <div class="col-start-1 w-1/2">
+        <p>RISES</p>
+        {#each rises as s}
+            {#if s.variation >= 0}
+                <div class="col-start-1 border-2 border-green-500">{s.name} {s.variation}</div>
+            {/if}
+        {/each}
+    </div>
+    <div class="col-start-2 w-1/2">
+        <p>FALLS</p>
+        {#each falls as s}
+            {#if s.variation < 0}
+                <div class="col-start-2 border-2 border-red-500">{s.name} {s.variation}</div>
+            {/if}
+        {/each}
+    </div>
+</div>
