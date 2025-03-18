@@ -7,20 +7,38 @@
 
 <script lang="ts">
     import { StockService } from "../services/stocks.service";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import type {Stock} from "../entities/stock";
+    import { SignalRService } from "../services/signalr.service";
     let props = $props();
     let stocks = $state([] as Stock[]);
     let rises = $state([] as Stock[]);
     let falls = $state([] as Stock[]);
+            $inspect("stocks",stocks);
+            $inspect("rises",rises);
+            $inspect("falls",falls);
 
     onMount(async () => {
+        const filterAndSort = (s: Stock[]) => {
+            rises = s.filter(s => s.variation >= 0);
+            falls = s.filter(s => s.variation < 0);
+            rises.sort((a, b) => b.variation - a.variation);
+            falls.sort((a, b) => a.variation - b.variation);
+        }
+        SignalRService.init();
+        SignalRService.on("messageReceived", (newStocks: Stock[]) => {
+            console.log('new values', newStocks);
+            stocks = newStocks;
+            filterAndSort(stocks);
+        });
         let stockService = new StockService();
-        stocks = await stockService.getAll()
-        rises = stocks.filter(s => s.variation >= 0);
-        falls = stocks.filter(s => s.variation < 0);
-        rises.sort((a, b) => b.variation - a.variation);
-        falls.sort((a, b) => a.variation - b.variation);
+        stocks = await stockService.getAll();
+        filterAndSort(stocks);
+        
+    });
+
+    onDestroy(() => {
+        SignalRService.off("messageReceived", () => {});
     });
 </script>
 
