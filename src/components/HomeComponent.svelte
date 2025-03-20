@@ -10,13 +10,14 @@
     import { onDestroy, onMount } from "svelte";
     import type {Stock} from "../entities/stock";
     import { SignalRService } from "../services/signalr.service";
+    import CardComponent from "./CardComponent.svelte";
     let props = $props();
     let stocks = $state([] as Stock[]);
     let rises = $state([] as Stock[]);
     let falls = $state([] as Stock[]);
-            $inspect("stocks",stocks);
-            $inspect("rises",rises);
-            $inspect("falls",falls);
+    $inspect("home stocks",stocks);
+    // $inspect("rises",rises);
+    // $inspect("falls",falls);
 
     onMount(async () => {
         const filterAndSort = (s: Stock[]) => {
@@ -69,21 +70,23 @@
 derived : {der()}
 </ul>
 
-<div class="columns-2 border-2 border-indigo-500" style="">
-    <div class="col-start-1 w-1/2">
-        <p>RISES</p>
-        {#each rises as s}
-            {#if s.variation >= 0}
-                <div class="col-start-1 border-2 border-green-500">{s.name} {s.variation}</div>
-            {/if}
-        {/each}
-    </div>
-    <div class="col-start-2 w-1/2">
-        <p>FALLS</p>
-        {#each falls as s}
-            {#if s.variation < 0}
-                <div class="col-start-2 border-2 border-red-500">{s.name} {s.variation}</div>
-            {/if}
-        {/each}
-    </div>
+<div class="w-[100%]">
+    <div style="" class="w-[800px] m-auto flex">
+        <div style="flex:1">
+            <p>RISES</p>
+            {#each stocks as s}
+                {#if s.variation >= 0}
+                    <CardComponent stock={s} />
+                {/if}
+            {/each}
+        </div>
+        <div style="flex:1">
+            <p>FALLS</p>
+            {#each stocks as s}
+                {#if s.variation < 0}
+                    <CardComponent stock={s} />
+                {/if}
+            {/each}
+        </div>
+    </div>    
 </div>
